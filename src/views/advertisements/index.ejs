@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <% include ../static/partials/head.ejs %>
+  </head>
+  <body>
+    <main class="container">
+      <% include ../static/partials/navbar.ejs %>
+
+      <h1>Ads</h1>
+
+      <ul class="list-group">
+        <% adverts.forEach((advert) => { %>
+          <li class="list-group-item">
+            <a href="/advertisements/<%= advert.id %>"> <%= advert.title %> </a>
+          </li>
+        <% }) %>
+      </ul>
+    </main>
+  </body>
+</html>
