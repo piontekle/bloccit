@@ -5,18 +5,18 @@
   </head>
   <body>
     <% include ../static/partials/navbar.ejs %>
+
     <main class="container">
+      <h1>New Post</h1>
 
-      <h1>New Topic</h1>
-
-      <form action="/topics/create" method="post">
+      <form action="/topics/<%= topicId %>/posts/create" method="post">
         <div class="form-group">
-          <label for="title">Topic title</label>
+          <label for="title">Post title</label>
           <input type="text" class="form-control" name="title" aria-describedby="titleHelp" placeholder="Enter Title">
         </div>
-        <div>
-          <label for="description">Description</label>
-          <textarea rows="4" class="form-control" name="description" placeholder="Enter Description"></textarea>
+        <div class="form-group">
+          <label for="body">Post body</label>
+          <textarea rows="4" class="form-control" name="body" placeholder="Enter Post body"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
@@ -26,5 +26,4 @@
     <% include ../static/partials/baseScripts.ejs %>
 
   </body>
-
 </html>
