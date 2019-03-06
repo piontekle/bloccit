@@ -1,20 +1,24 @@
+<!DOCTYPE html>
 <html>
   <head>
     <% include ../static/partials/head.ejs %>
   </head>
   <body>
-    <main class="container">
-      <% include ../static/partials/navbar.ejs %>
+    <% include ../static/partials/navbar.ejs %>
 
-      <h1>Ads</h1>
+    <main class="container">
+      <h1>Flair</h1>
+      <a href="/flair/new" class="btn btn-success">New Flair</a>
+
 
       <ul class="list-group">
-        <% adverts.forEach((advert) => { %>
+        <% flair.forEach((flair) => { %>
           <li class="list-group-item">
-            <a href="/advertisements/<%= advert.id %>"> <%= advert.title %> </a>
+            <a href="/flair/<%= flair.id %>"><%= flair.name %></a>
           </li>
         <% }) %>
       </ul>
+
     </main>
 
     <% include ../static/partials/baseScripts.ejs %>
