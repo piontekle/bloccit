@@ -8,6 +8,8 @@
 
     <main class="container">
 
+      <% include ../static/partials/messages.ejs %>
+
       <h1>Edit Topic</h1>
 
       <form action="/topics/<%= topic.id %>/update" method="post">
