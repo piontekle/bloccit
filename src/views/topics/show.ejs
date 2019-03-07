@@ -9,7 +9,8 @@
     <main class="container">
 
       <% include ../static/partials/messages.ejs %>
-      
+
+      <a href="/topics">Back to Topics</a>
       <h1><%= topic.title %></h1>
         <a href="/topics/<%= topic.id %>/edit" class="btn btn-warning">Edit</a>
         <a href="/topics/<%= topic.id %>/posts/new" class="btn btn-success">New Post</a>
