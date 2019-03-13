@@ -247,7 +247,6 @@ describe("routes : posts", () => {
 
     describe("POST /topics/:topicId/posts/:id/destroy", () => {
       it("should only delete the post with the associated ID if the member is the owner of the post", (done) => {
-        expect(this.topic.posts.length).toBe(2);
         expect(this.post.userId).toBe(this.user.id);
 
         request.post(`${base}/${this.topic.id}/posts/${this.post.id}/destroy`, (err, res, body) => {
@@ -255,7 +254,6 @@ describe("routes : posts", () => {
           Post.findById(this.post.id)
           .then((post) => {
             expect(err).toBeNull();
-            expect(this.topic.posts.length).toBe(1);
             expect(post).toBeNull();
             done();
           })
@@ -263,7 +261,6 @@ describe("routes : posts", () => {
       });
 
       it("should not delete the post with the associated ID if the member is not the owner of the post", (done) => {
-        expect(this.post2.title).toBe("Snowman Building");
         expect(this.post2.userId).toBe(this.user2.id);
 
         request.post(`${base}/${this.topic.id}/posts/${this.post2.id}/destroy`, (err, res, body) => {
@@ -271,6 +268,7 @@ describe("routes : posts", () => {
           .then((post) => {
             expect(err).toBeNull();
             expect(post).not.toBeNull();
+            done();
           })
         })
       });
@@ -290,7 +288,7 @@ describe("routes : posts", () => {
       });
 
       it("should not render a view with an edit post form if the member is not the owner of the post", (done) => {
-          request.get(`${base}${this.topic.id}/posts/${this.post2.id}/edit`, (err, res, body) => {
+          request.get(`${base}/${this.topic.id}/posts/${this.post2.id}/edit`, (err, res, body) => {
           expect(err).toBeNull();
           expect(body).not.toContain("Edit Topic");
           expect(body).toContain("Snowman Building");
@@ -441,11 +439,11 @@ describe("routes : posts", () => {
 
     describe("POST /topics/:topicId/posts/:id/destroy", () => {
       it("should delete the post with the associated ID", (done) => {
-        expect(this.post.id).toBe(1);
+        expect(this.post).not.toBeNull();
 
         request.post(`${base}/${this.topic.id}/posts/${this.post.id}/destroy`, (err, res, body) => {
 
-          Post.findById(1)
+          Post.findById(this.post.id)
           .then((post) => {
             expect(err).toBeNull();
             expect(post).toBeNull();
