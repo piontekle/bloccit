@@ -12,6 +12,8 @@ describe("routes : posts", () => {
     this.topic;
     this.post;
     this.user;
+    this.post2;
+    this.user2;
 
     sequelize.sync({force: true}).then((res) => {
       User.create({
@@ -22,24 +24,39 @@ describe("routes : posts", () => {
       .then((user) => {
         this.user = user;
 
-        Topic.create({
-          title: "Winter Games",
-          description: "Post your Winter Games stories.",
-          posts: [{
-            title: "Snowball Fighting",
-            body: "So much snow!",
-            userId: this.user.id
-          }]
-        }, {
-          include: {
-            model: Post,
-            as: "posts"
-          }
+        User.create({
+          email: "member@member.com",
+          password: "123456",
+          role: "member"
         })
-        .then((topic) => {
-          this.topic = topic;
-          this.post = topic.posts[0];
-          done();
+        .then((user2) => {
+          this.user2 = user2;
+
+          Topic.create({
+            title: "Winter Games",
+            description: "Post your Winter Games stories.",
+            posts: [{
+              title: "Snowball Fighting",
+              body: "So much snow!",
+              userId: this.user.id
+            },
+            {
+              title: "Snowman Building",
+              body: "It's tough when they're tall",
+              userId: this.user2.id
+            }]
+          }, {
+            include: {
+              model: Post,
+              as: "posts"
+            }
+          })
+          .then((topic) => {
+            this.topic = topic;
+            this.post = topic.posts[0];
+            this.post2 = topic.posts[1];
+            done();
+          })
         })
       })
     });
@@ -92,14 +109,14 @@ describe("routes : posts", () => {
 
     describe("POST /topics/:topicId/posts/:id/destroy", () => {
       it("should not delete the post with the associated ID", (done) => {
-        expect(this.post.id).toBe(1);
+        expect(this.topic.posts.length).toBe(2);
 
         request.post(`${base}/${this.topic.id}/posts/${this.post.id}/destroy`, (err, res, body) => {
 
           Post.findById(1)
           .then((post) => {
             expect(err).toBeNull();
-            expect(this.post.id).toBe(1);
+            expect(this.topic.posts.length).toBe(2);
             done();
           })
         });
@@ -142,31 +159,20 @@ describe("routes : posts", () => {
     });
 
   });
-
+// ------------------------------------------------------
+//MEMBER TESTS
   describe("member user performing CRUD actions for posts", () => {
     beforeEach((done) => {
-      this.post2;
-
-      Post.create({
-        title: "Snowman Building",
-        body: "It's tough when they're tall",
-        topicId: this.topic.id,
-        userId: 2
-      })
-      .then((post) => {
-        this.post2 = post;
-
-        request.get({
-          url: "http://localhost:3000/auth/fake",
-          form: {
-            role: this.user.role,
-            userId: this.user.id,
-            email: this.user.email
-          }
-        }, (err, res, body) => {
-          done();
-        });
-      })
+      request.get({
+        url: "http://localhost:3000/auth/fake",
+        form: {
+          role: this.user.role,
+          userId: this.user.id,
+          email: this.user.email
+        }
+      }, (err, res, body) => {
+        done();
+      });
     });
 
     describe("GET /topics/:topicId/posts/new", () => {
@@ -241,14 +247,15 @@ describe("routes : posts", () => {
 
     describe("POST /topics/:topicId/posts/:id/destroy", () => {
       it("should only delete the post with the associated ID if the member is the owner of the post", (done) => {
-        expect(this.post.id).toBe(1);
+        expect(this.topic.posts.length).toBe(2);
         expect(this.post.userId).toBe(this.user.id);
 
         request.post(`${base}/${this.topic.id}/posts/${this.post.id}/destroy`, (err, res, body) => {
 
-          Post.findById(1)
+          Post.findById(this.post.id)
           .then((post) => {
             expect(err).toBeNull();
+            expect(this.topic.posts.length).toBe(1);
             expect(post).toBeNull();
             done();
           })
@@ -256,11 +263,11 @@ describe("routes : posts", () => {
       });
 
       it("should not delete the post with the associated ID if the member is not the owner of the post", (done) => {
-        expect(post.title).toBe("Snowman Building");
-        expect(post.userId).toBe(2);
+        expect(this.post2.title).toBe("Snowman Building");
+        expect(this.post2.userId).toBe(this.user2.id);
 
         request.post(`${base}/${this.topic.id}/posts/${this.post2.id}/destroy`, (err, res, body) => {
-          Post.findById(post.id)
+          Post.findById(this.post2.id)
           .then((post) => {
             expect(err).toBeNull();
             expect(post).not.toBeNull();
@@ -326,7 +333,7 @@ describe("routes : posts", () => {
           expect(err).toBeNull();
 
           Post.findOne({
-            where: {id: post.id}
+            where: {id: this.post2.id}
           })
           .then((post) => {
             expect(post.title).toBe("Snowman Building");
@@ -338,6 +345,8 @@ describe("routes : posts", () => {
 
   });
 
+  // ------------------------------------------------------
+  //ADMIN TESTS
   describe("admin user performing CRUD actions for posts", () => {
     beforeEach((done) => {
       User.create({

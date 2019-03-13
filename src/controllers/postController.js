@@ -4,7 +4,7 @@ const Authorizer = require("../policies/application");
 
 module.exports = {
   new(req, res, next){
-    const authorized = Authorizer(req.user).new();
+    const authorized = new Authorizer(req.user).new();
 
     if(authorized){
       res.render("posts/new", {topicId: req.params.topicId});
@@ -14,8 +14,8 @@ module.exports = {
     }
   },
   create(req, res, next) {
-
     const authorized = new Authorizer(req.user).create();
+
     if(authorized) {
       let newPost = {
         title: req.body.title,
