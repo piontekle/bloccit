@@ -10,7 +10,14 @@
       <% include ../static/partials/messages.ejs %>
 
       <a href="/topics/<%= post.topicId %>">Back to Topic</a>
-      <h1><%= post.title %></h1>
+
+      <div style="display: flex; align-items:center;">
+        <% if(currentUser) { %>
+          <% include ../votes/voting.ejs %>
+        <% } %>
+
+        <h1><%= post.title %></h1>
+      </div>
         <% if(currentUser && (currentUser.isAdmin() || post.userId == currentUser.id)) { %>
           <a href="/topics/<%= post.topicId %>/posts/<%= post.id %>/edit" class="btn btn-warning">Edit</a>
           <form style="display:initial" action="/topics/<%= post.topicId %>/posts/<%= post.id %>/destroy" method="post">
