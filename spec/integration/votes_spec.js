@@ -68,7 +68,7 @@ describe("routes : votes", () => {
      describe("GET /topics/:topicId/posts/:postId/votes/upvote", () => {
        it("should not create a new vote", (done) => {
          const options = {
-           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvate`
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`
          };
          request.get(options,
           (err, res, body) => {
@@ -136,6 +136,57 @@ describe("routes : votes", () => {
           });
        });
 
+       it("should not create a vote with a value other than 1 or -1", (done) => {
+         const options = {
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`,
+           form: {
+             value: 3
+           }
+         };
+         request.get(options,
+          (err, res, body) => {
+            Vote.findOne({
+              where: {
+                userId: this.user.id,
+                postId: this.post.id
+              }
+            })
+            .then((vote) => {
+              expect(vote.value).toBe(1);
+              expect(vote.value).not.toBe(3);
+              done();
+            })
+            .catch((err) => {
+              console.log(err);
+              done();
+            });
+          });
+       });
+
+       it("should not create more than one vote per user", (done) => {
+         Vote.create({
+           value: 1,
+           postId: this.post.id,
+           userId: this.user.id
+         })
+
+         const options = {
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`,
+         };
+         request.get(options,
+          (err, res, body) => {
+            Vote.all()
+            .then((votes) => {
+              expect(votes.length).toBe(1);
+              done();
+            })
+            .catch((err) => {
+              console.log(err);
+              done();
+            });
+          });
+       });
+
      });
 
      describe("GET /topics/:topicId/posts/:postId/votes/downvote", () => {
@@ -165,6 +216,35 @@ describe("routes : votes", () => {
           });
        });
      });
+
+     describe("#post.getPoints()", () => {
+       it("should return the number of votes", (done) => {
+         const options = {
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`,
+         };
+
+         request.get(options,
+          (err, res, body) => {
+            Vote.findOne({
+              where: {
+                postId: this.post.id,
+                userId: this.user.id
+              }
+            })
+            .then((vote) => {
+              Post.findOne({where: {id: vote.postId}})
+            })
+            .then((post) => {
+              expect(post.getPoints()).toBe(1);
+              done();
+            })
+            .catch((err) => {
+              console.log(err);
+              done();
+            })
+          })
+       })
+     })
 
   });
 
