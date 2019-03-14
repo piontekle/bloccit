@@ -232,21 +232,97 @@ describe("routes : votes", () => {
               }
             })
             .then((vote) => {
-              Post.findOne({where: {id: vote.postId}})
-            })
-            .then((post) => {
-              expect(post.getPoints()).toBe(1);
-              done();
+              Post.findOne({
+                where: { id: vote.postId},
+                include: [{
+                  model: Vote,
+                  as: "votes"
+                }]
+              })
+              .then((post) => {
+                expect(post.getPoints()).toBe(1);
+                done();
+              })
             })
             .catch((err) => {
               console.log(err);
               done();
-            })
-          })
-       })
-     })
+            });
+          });
+       });
+     });
 
-  });
+     describe("#hasUpvoteFor()", () => {
+       it("should return that a user has upvoted a post", (done) => {
+         const options = {
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`,
+         };
+
+         request.get(options,
+          (err, res, body) => {
+            Vote.findOne({
+              where: {
+                postId: this.post.id,
+                userId: this.user.id
+              }
+            })
+            .then((vote) => {
+              Post.findOne({
+                where: { id: vote.postId},
+                include: [{
+                  model: Vote,
+                  as: "votes"
+                }]
+              })
+              .then((post) => {
+                expect(post.hasUpvoteFor(this.user.id)).toBe(true);
+                done();
+              })
+            })
+            .catch((err) => {
+              console.log(err);
+              done();
+            });
+          });
+       });
+     });
+
+     describe("#hasDownvoteFor()", () => {
+       it("should return that a user has downvoted a post", (done) => {
+         const options = {
+           url: `${base}${this.topic.id}/posts/${this.post.id}/votes/downvote`,
+         };
+
+         request.get(options,
+          (err, res, body) => {
+            Vote.findOne({
+              where: {
+                postId: this.post.id,
+                userId: this.user.id
+              }
+            })
+            .then((vote) => {
+              Post.findOne({
+                where: { id: vote.postId},
+                include: [{
+                  model: Vote,
+                  as: "votes"
+                }]
+              })
+              .then((post) => {
+                expect(post.hasDownvoteFor(this.user.id)).toBe(true);
+                done();
+              })
+            })
+            .catch((err) => {
+              console.log(err);
+              done();
+            });
+          });
+       });
+     });
+
+  }); //end member context
 
 
 })
