@@ -167,12 +167,14 @@ describe("routes : comments", () => {
     });
 
     describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
-      it("should delete the comment with the associated ID", (done) => {
+      it("should only delete the comment with the associated ID if the member is the owner", (done) => {
+
         Comment.all()
         .then((comments) => {
           const commentCoutnBeforeDelete = comments.length;
 
           expect(commentCoutnBeforeDelete).toBe(1);
+          expect(this.comment.userId).toBe(this.user.id);
 
           request.post(
             `${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
@@ -187,8 +189,79 @@ describe("routes : comments", () => {
             });
         })
       });
-    });
 
+      it("should not delete the comment with the associated ID if the member is not the owner", (done) => {
+        request.get({
+          url: "http://localhost:3000/auth/fake",
+          form: {
+            role: "member",
+            userId: 3
+          }
+        });
+
+        Comment.all()
+        .then((comments) => {
+          const commentCoutnBeforeDelete = comments.length;
+
+          expect(commentCoutnBeforeDelete).toBe(1);
+          expect(this.comment.userId).toBe(this.user.id);
+
+          request.post(
+            `${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+            (err, res, body) => {
+              expect(res.statusCode).toBe(401);
+              Comment.all()
+              .then((comments) => {
+                expect(err).toBeNull();
+                expect(comments.length).toBe(commentCoutnBeforeDelete);
+                done();
+              })
+            });
+        })
+      });
+
+    });
   });
+
+  //----------------------------------
+  //ADMIN TESTS
+    describe("admin performing CRUD actions for Comment", () => {
+      beforeEach((done) => {
+        request.get({
+          url: "http://localhost:3000/auth/fake",
+          form: {
+            role: "admin",
+            userId: 4
+          }
+        },
+          (err, res, body) => {
+            done();
+          });
+      });
+
+      describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
+        it("should delete the comment with the associated ID", (done) => {
+          Comment.all()
+          .then((comments) => {
+            const commentCoutnBeforeDelete = comments.length;
+
+            expect(commentCoutnBeforeDelete).toBe(1);
+
+            request.post(
+              `${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+              (err, res, body) => {
+                expect(res.statusCode).toBe(302);
+                Comment.all()
+                .then((comments) => {
+                  expect(err).toBeNull();
+                  expect(comments.length).toBe(commentCoutnBeforeDelete - 1);
+                  done();
+                })
+              });
+          })
+        });
+      });
+
+    });
 
 })
