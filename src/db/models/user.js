@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
     User.hasMany(models.Favorite, {
       foreignKey: "userId",
       as: "favorites"
-    })
+    });
   };
 
   User.prototype.isAdmin = function() {
